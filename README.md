@@ -42,6 +42,8 @@ It finds OpenTofu at `$TEMPEH_TOFU`, then `/usr/libexec/opentofu`, then the firs
 A repair that would change anything but whitespace and order is refused, and the file is
 left as it was.
 
+[docs/hcl-style.md](docs/hcl-style.md) describes each rule with examples.
+
 ## Install
 
 Download a build for Linux or macOS from the
