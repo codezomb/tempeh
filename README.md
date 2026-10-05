@@ -44,9 +44,15 @@ left as it was.
 
 ## Install
 
+Download a build for Linux or macOS from the
+[releases](https://github.com/codezomb/tempeh/releases) page and check it against
+`checksums.txt`, or build it with Go:
+
 ```sh
 go install github.com/codezomb/tempeh/cmd/tempeh@latest
 ```
+
+Pushing a `v*` tag runs the tests and publishes the release.
 
 In a container image, move OpenTofu to `/usr/libexec/opentofu` and link `tofu` to tempeh:
 
