@@ -1,0 +1,6 @@
+#!/usr/bin/env bash
+# Runs the project-local Go toolchain from any working directory.
+root="$(cd "$(dirname "${BASH_SOURCE[0]}")/.." && pwd)"
+export GOROOT="$root/.toolchain/go" GOPATH="$root/.toolchain/gopath" GOMODCACHE="$root/.toolchain/gopath/pkg/mod" GOCACHE="$root/.toolchain/gocache" GOTOOLCHAIN=local GOFLAGS=-mod=mod
+export PATH="$GOROOT/bin:$GOPATH/bin:$PATH"
+exec "$GOROOT/bin/$(basename "$0")" "$@"

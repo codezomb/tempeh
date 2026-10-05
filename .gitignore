@@ -1,0 +1,12 @@
+# Project-local Go toolchain and build output
+.toolchain/
+bin/tempeh
+/tempeh
+
+# Local state
+*.log
+scratch/
+
+# Editors and OS
+.DS_Store
+*.swp
