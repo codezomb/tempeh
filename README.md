@@ -19,8 +19,8 @@ TOFU_FMT=real tempeh fmt         # OpenTofu's own formatter
 Before any command other than `fmt`, tempeh:
 
 1. Decrypts `secrets/<workspace>.tfvars` with `sops`, if the file exists, and passes the
-   values to OpenTofu as `TF_VAR_*`. Nothing decrypted is written to disk. Values must be
-   literals.
+   values to OpenTofu as `TF_VAR_*`, including for automatic and explicit `init` so backend
+   configuration can use them. Nothing decrypted is written to disk. Values must be literals.
 2. Runs `tofu init` if the `terraform` blocks, a `source` line, or `.terraform.lock.hcl`
    changed since the last init.
 

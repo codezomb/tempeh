@@ -2,10 +2,82 @@ package tofu
 
 import (
 	"os"
+	"os/exec"
 	"path/filepath"
 	"strings"
 	"testing"
 )
+
+func TestRunInitVars(t *testing.T) {
+	for _, command := range []string{"plan", "init"} {
+		t.Run(command, func(t *testing.T) {
+			dir := t.TempDir()
+			write := func(name, body string, mode os.FileMode) {
+				t.Helper()
+				if err := os.WriteFile(filepath.Join(dir, name), []byte(body), mode); err != nil {
+					t.Fatal(err)
+				}
+			}
+
+			if err := os.Mkdir(filepath.Join(dir, secretsDir), 0o755); err != nil {
+				t.Fatal(err)
+			}
+
+			write("secrets/default.tfvars", "encrypted placeholder", 0o600)
+			write("sops", `#!/bin/sh
+[ "$1" = "-d" ] && [ "$2" = "secrets/default.tfvars" ] || exit 20
+printf 'init_token = "test-only"\n'
+`, 0o755)
+			write("tofu", `#!/bin/sh
+if [ "$1" = "workspace" ]; then
+  printf 'default\n'
+  exit 0
+fi
+[ "$TF_VAR_init_token" = "test-only" ] || exit 21
+printf '%s\n' "$1" >> calls
+`, 0o755)
+
+			t.Setenv(binaryEnv, filepath.Join(dir, "tofu"))
+			t.Setenv("PATH", dir)
+			t.Setenv("TF_VAR_init_token", "inherited-placeholder")
+			t.Setenv("TEMPEH_TEST_RUN_COMMAND", command)
+
+			self, err := os.Executable()
+			if err != nil {
+				t.Fatal(err)
+			}
+
+			cmd := exec.Command(self, "-test.run=^TestRunInitVarsHelper$")
+			cmd.Dir = dir
+			if out, err := cmd.CombinedOutput(); err != nil {
+				t.Fatalf("Run failed: %v\n%s", err, out)
+			}
+
+			want := "init\n"
+			if command == "plan" {
+				want += "plan\n"
+			}
+
+			if calls, err := os.ReadFile(filepath.Join(dir, "calls")); err != nil || string(calls) != want {
+				t.Fatalf("calls = %q, %v; want %q", calls, err, want)
+			}
+			if _, err := os.Stat(filepath.Join(dir, fingerprintPath)); err != nil {
+				t.Fatalf("successful init did not record its fingerprint: %v", err)
+			}
+		})
+	}
+}
+
+func TestRunInitVarsHelper(t *testing.T) {
+	command := os.Getenv("TEMPEH_TEST_RUN_COMMAND")
+	if command == "" {
+		return
+	}
+
+	if code, err := Run(".", []string{command}); err != nil || code != 0 {
+		t.Fatalf("Run returned %d, %v", code, err)
+	}
+}
 
 func TestVarsFromTFVars(t *testing.T) {
 	src := []byte(`

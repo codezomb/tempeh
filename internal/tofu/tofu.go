@@ -54,8 +54,7 @@ func Run(dir string, args []string) (int, error) {
 		if needsInit() {
 			fmt.Println("Providers, backend and modules changed -- initializing.")
 
-			// Only the command being prepared needs the variables.
-			if code, err := forward(bin, []string{"init"}, os.Environ()); err != nil || code != 0 {
+			if code, err := forward(bin, []string{"init"}, env); err != nil || code != 0 {
 				return 1, fmt.Errorf("tofu init failed: %w", errors.Join(err, exitError(code)))
 			}
 
